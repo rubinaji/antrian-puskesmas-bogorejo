@@ -1,3 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Operator Panggilan Pasien</title>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#0f766e;
+    padding:30px;
+    color:white;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    color:#0f766e;
+    padding:30px;
+    border-radius:20px;
+}
+
+h1{
+    text-align:center;
+}
+
+select{
+    width:100%;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-size:16px;
+}
+
+.card{
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    color:white;
+    cursor:pointer;
+    margin-right:10px;
+}
+
+.panggil{
+    background:#16a34a;
+}
+
+.ulangi{
+    background:#2563eb;
+}
+
+.selesai{
+    background:#dc2626;
+}
+
+.status{
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OPERATOR PANGGILAN PASIEN</h1>
+
+<select id="filterKlaster" onchange="tampilkanPasien()">
+
+<option value="">Pilih Klaster</option>
+
+<option>Klaster 3 Dewasa dan Lansia</option>
+<option>Klaster II Ibu dan Anak (KIA)</option>
+<option>Klaster II Anak dan Remaja (MTBS)</option>
+<option>Klaster IV (Penyakit Menular)</option>
+<option>Laboratorium</option>
+<option>Apotek</option>
+<option>Gizi</option>
+<option>Imunisasi</option>
+<option>PONED</option>
+<option>Konseling</option>
+<option>Lintas Klaster (Gawat Darurat)</option>
+<option>Lintas Klaster (Gigi dan Mulut)</option>
+
+</select>
+
+<div id="daftarPasien">
+Silakan pilih klaster terlebih dahulu.
+</div>
+
+</div>
+
 <script>
 
 const API_URL="https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec";
@@ -8,45 +113,124 @@ async function tampilkanPasien(){
 
     const daftar=document.getElementById("daftarPasien");
 
-    daftar.innerHTML="Memuat data...";
-
-    const response=await fetch(API_URL);
-
-    const pasien=await response.json();
-
-    const hasil=pasien.filter(
-        p=>p.Klaster===klaster &&
-           p.Status==="menunggu"
-    );
-
-    daftar.innerHTML="";
-
-    if(hasil.length===0){
-        daftar.innerHTML="<h2>Tidak ada pasien menunggu</h2>";
+    if(klaster==""){
+        daftar.innerHTML="Silakan pilih klaster terlebih dahulu.";
         return;
     }
 
-    hasil.forEach((p,index)=>{
+    daftar.innerHTML="Memuat data...";
 
-        daftar.innerHTML+=`
-        <div class="card">
+    try{
 
-            <h2>${p.Sapaan} ${p.Nama}</h2>
+        const response=await fetch(API_URL);
 
-            <p>Desa : ${p.Desa}</p>
+        const pasien=await response.json();
 
-            <button onclick='panggil(
-            "${p.Sapaan}",
-            "${p.Nama}",
-            "${p.Desa}",
-            "${p.Klaster}"
-            )'>
-            🔊 Panggil
-            </button>
+        const hasil=pasien.filter(
+            p =>
+            p.Klaster===klaster &&
+            p.Status==="menunggu"
+        );
 
-        </div>
-        `;
-    });
+        daftar.innerHTML="";
+
+        if(hasil.length===0){
+            daftar.innerHTML="<h2>Tidak ada pasien menunggu</h2>";
+            return;
+        }
+
+        hasil.forEach((p,index)=>{
+
+            daftar.innerHTML+=`
+            <div class="card">
+
+                <h2>${p.Sapaan} ${p.Nama}</h2>
+
+                <p><b>Desa :</b> ${p.Desa}</p>
+
+                <p><b>Status :</b> ${p.Status}</p>
+
+                <button class="panggil"
+                onclick='panggil(
+                "${p.Sapaan}",
+                "${p.Nama}",
+                "${p.Desa}",
+                "${p.Klaster}"
+                )'>
+                🔊 Panggil
+                </button>
+
+            </div>
+            `;
+        });
+
+    }
+    catch(error){
+
+        daftar.innerHTML=
+        "<h2>Gagal mengambil data dari Google Sheets</h2>";
+
+        console.log(error);
+
+    }
+
 }
 
+function panggil(
+    sapaan,
+    nama,
+    desa,
+    klaster
+){
+
+    const data={
+        sapaan:sapaan,
+        nama:nama,
+        desa:desa,
+        klaster:klaster
+    };
+
+    localStorage.setItem(
+        "sedangDipanggil",
+        JSON.stringify(data)
+    );
+
+    const suara=
+    new SpeechSynthesisUtterance(
+        sapaan+" "+
+        nama+
+        " dari desa "+
+        desa+
+        ", dipersilakan menuju "+
+        klaster+
+        ". Terima kasih."
+    );
+
+    suara.lang="id-ID";
+    suara.rate=0.9;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(suara);
+
+    alert(
+        nama+
+        " berhasil dipanggil."
+    );
+
+}
+
+setInterval(function(){
+
+    const klaster=
+    document.getElementById("filterKlaster").value;
+
+    if(klaster!=""){
+        tampilkanPasien();
+    }
+
+},5000);
+
 </script>
+
+</body>
+</html>
