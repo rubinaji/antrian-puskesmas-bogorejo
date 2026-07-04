@@ -1,18 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pendaftaran Pasien</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#0f766e;
+    color:white;
+    padding:30px;
+}
+.container{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    color:#0f766e;
+    padding:30px;
+    border-radius:20px;
+}
+input,select,button{
+    width:100%;
+    padding:15px;
+    margin-top:15px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+button{
+    background:#16a34a;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+button:hover{
+    background:#15803d;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>PENDAFTARAN PASIEN</h1>
+
+<select id="sapaan">
+    <option>Bapak</option>
+    <option>Ibu</option>
+    <option>Saudara</option>
+    <option>Saudari</option>
+</select>
+
+<input type="text" id="nama" placeholder="Nama Pasien">
+
+<select id="desa">
+    <option>Bogorejo</option>
+    <option>Gandu</option>
+    <option>Gayam</option>
+    <option>Gembol</option>
+    <option>Gombang</option>
+    <option>Jeruk</option>
+    <option>Jurangjero</option>
+    <option>Karang</option>
+    <option>Karanganyar</option>
+    <option>Nglengkir</option>
+    <option>Prantaan</option>
+    <option>Sarirejo</option>
+    <option>Sendangrejo</option>
+    <option>Tempurejo</option>
+    <option>Luar Wilayah</option>
+</select>
+
+<select id="klaster">
+    <option>Klaster 3 Dewasa dan Lansia</option>
+    <option>Klaster II Ibu dan Anak (KIA)</option>
+    <option>Klaster II Anak dan Remaja (MTBS)</option>
+    <option>Klaster IV (Penyakit Menular)</option>
+    <option>Laboratorium</option>
+    <option>Apotek</option>
+    <option>Gizi</option>
+    <option>Imunisasi</option>
+    <option>PONED</option>
+    <option>Konseling</option>
+    <option>Lintas Klaster (Gawat Darurat)</option>
+    <option>Lintas Klaster (Gigi dan Mulut)</option>
+</select>
+
+<button onclick="daftarPasien()">
+DAFTARKAN PASIEN
+</button>
+
+</div>
+
 <script>
 
 async function daftarPasien(){
 
-    const sapaan = document.getElementById("sapaan").value;
-    const nama = document.getElementById("nama").value;
-    const desa = document.getElementById("desa").value;
-    const klaster = document.getElementById("klaster").value;
+    const sapaan=document.getElementById("sapaan").value;
+    const nama=document.getElementById("nama").value;
+    const desa=document.getElementById("desa").value;
+    const klaster=document.getElementById("klaster").value;
 
     if(nama==""){
         alert("Nama pasien belum diisi");
         return;
     }
 
-    const data = {
+    const data={
         sapaan:sapaan,
         nama:nama,
         desa:desa,
@@ -21,14 +116,14 @@ async function daftarPasien(){
 
     try{
 
-        const response = await fetch(
+        const response=await fetch(
         "https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec",
         {
             method:"POST",
             body:JSON.stringify(data)
         });
 
-        const hasil = await response.json();
+        const hasil=await response.json();
 
         if(hasil.status==="success"){
             alert("Pasien berhasil didaftarkan");
@@ -42,3 +137,6 @@ async function daftarPasien(){
 }
 
 </script>
+
+</body>
+</html>
