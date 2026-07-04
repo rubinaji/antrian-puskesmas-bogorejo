@@ -1,3 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator Panggilan - Puskesmas Bogorejo</title>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#0f766e;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:white;
+    color:#0f766e;
+    padding:25px;
+    border-radius:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+select{
+    width:100%;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin-bottom:20px;
+    font-size:16px;
+}
+
+.toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+button{
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.refresh{
+    background:#f59e0b;
+}
+
+.ulangi{
+    background:#2563eb;
+}
+
+.panggil{
+    background:#16a34a;
+}
+
+.selesai{
+    background:#dc2626;
+}
+
+.counter{
+    background:#0f766e;
+    color:white;
+    padding:12px 20px;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.sedang{
+    background:#ecfdf5;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:15px;
+}
+
+.card h2{
+    margin-bottom:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OPERATOR PANGGILAN PASIEN</h1>
+
+<select id="filterKlaster" onchange="tampilkanPasien()">
+<option value="">Pilih Klaster</option>
+<option>Klaster 3 Dewasa dan Lansia</option>
+<option>Klaster II Ibu dan Anak (KIA)</option>
+<option>Klaster II Anak dan Remaja (MTBS)</option>
+<option>Klaster IV (Penyakit Menular)</option>
+<option>Laboratorium</option>
+<option>Apotek</option>
+<option>Gizi</option>
+<option>Imunisasi</option>
+<option>PONED</option>
+<option>Konseling</option>
+<option>Lintas Klaster (Gawat Darurat)</option>
+<option>Lintas Klaster (Gigi dan Mulut)</option>
+</select>
+
+<div class="toolbar">
+
+<button class="refresh" onclick="tampilkanPasien()">
+🔄 Refresh
+</button>
+
+<button class="ulangi" onclick="ulangiTerakhir()">
+🔁 Ulangi Terakhir
+</button>
+
+<div class="counter">
+Menunggu :
+<span id="jumlahPasien">0</span>
+</div>
+
+</div>
+
+<div class="sedang">
+<h3>SEDANG DIPANGGIL</h3>
+<div id="sedangDipanggil">
+Belum ada pasien dipanggil
+</div>
+</div>
+
+<div id="daftarPasien">
+Silakan pilih klaster.
+</div>
+
+</div>
+
 <script>
 
 const API_URL="https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec";
@@ -23,17 +175,12 @@ async function tampilkanPasien(){
             p.Status!=="selesai"
         );
 
-        document.getElementById(
-            "jumlahPasien"
-        ).innerHTML=hasil.length;
+        document.getElementById("jumlahPasien").innerHTML=hasil.length;
 
         daftar.innerHTML="";
 
         if(hasil.length===0){
-
-            daftar.innerHTML=
-            "<h2>Tidak ada pasien menunggu</h2>";
-
+            daftar.innerHTML="<h2>Tidak ada pasien menunggu</h2>";
             return;
         }
 
@@ -45,36 +192,20 @@ async function tampilkanPasien(){
                 <h2>${p.Sapaan} ${p.Nama}</h2>
 
                 <p><b>Desa :</b> ${p.Desa}</p>
-
                 <p><b>Status :</b> ${p.Status}</p>
 
                 <button class="panggil"
-                onclick='panggil(
-                "${p.Sapaan}",
-                "${p.Nama}",
-                "${p.Desa}",
-                "${p.Klaster}"
-                )'>
+                onclick='panggil("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
                 🔊 Panggil
                 </button>
 
                 <button class="ulangi"
-                onclick='ulangi(
-                "${p.Sapaan}",
-                "${p.Nama}",
-                "${p.Desa}",
-                "${p.Klaster}"
-                )'>
+                onclick='ulangi("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
                 🔁 Ulangi
                 </button>
 
                 <button class="selesai"
-                onclick='selesai(
-                "${p.Sapaan}",
-                "${p.Nama}",
-                "${p.Desa}",
-                "${p.Klaster}"
-                )'>
+                onclick='selesai("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
                 ✅ Selesai
                 </button>
 
@@ -82,53 +213,32 @@ async function tampilkanPasien(){
             `;
         });
 
-    }
-    catch(error){
+    }catch(error){
 
-        daftar.innerHTML=
-        "<h2>Gagal mengambil data</h2>";
-
+        daftar.innerHTML="<h2>Gagal mengambil data</h2>";
         console.log(error);
 
     }
 
 }
 
-function panggil(
-sapaan,
-nama,
-desa,
-klaster){
+function panggil(sapaan,nama,desa,klaster){
 
-    const data={
-        sapaan:sapaan,
-        nama:nama,
-        desa:desa,
-        klaster:klaster
-    };
+    const data={sapaan,nama,desa,klaster};
 
     localStorage.setItem(
         "sedangDipanggil",
         JSON.stringify(data)
     );
 
-    document.getElementById(
-        "sedangDipanggil"
-    ).innerHTML=
-    `
-    <h2>${sapaan} ${nama}</h2>
-    <p>${desa}</p>
-    <p>${klaster}</p>
+    document.getElementById("sedangDipanggil").innerHTML=`
+        <h2>${sapaan} ${nama}</h2>
+        <p>${desa}</p>
+        <p>${klaster}</p>
     `;
 
-    const suara = new SpeechSynthesisUtterance(
-        sapaan + " " +
-        nama +
-        ", dari desa " +
-        desa +
-        ", dipersilakan menuju " +
-        klaster +
-        ". Terima kasih."
+    const suara=new SpeechSynthesisUtterance(
+        `${sapaan} ${nama}, dari desa ${desa}, dipersilakan menuju ${klaster}. Terima kasih.`
     );
 
     suara.lang="id-ID";
@@ -136,52 +246,22 @@ klaster){
     suara.pitch=1;
     suara.volume=1;
 
-    const voices =
-    speechSynthesis.getVoices();
-
-    const voiceIndonesia =
-    voices.find(
-        v=>v.lang.includes("id")
-    );
-
-    if(voiceIndonesia){
-        suara.voice=
-        voiceIndonesia;
-    }
-
     speechSynthesis.cancel();
     speechSynthesis.speak(suara);
 }
 
-function ulangi(
-sapaan,
-nama,
-desa,
-klaster){
-
-    panggil(
-        sapaan,
-        nama,
-        desa,
-        klaster
-    );
+function ulangi(sapaan,nama,desa,klaster){
+    panggil(sapaan,nama,desa,klaster);
 }
 
 function ulangiTerakhir(){
 
-    const data=
-    JSON.parse(
-        localStorage.getItem(
-            "sedangDipanggil"
-        )
+    const data=JSON.parse(
+        localStorage.getItem("sedangDipanggil")
     );
 
     if(!data){
-
-        alert(
-        "Belum ada pasien dipanggil."
-        );
-
+        alert("Belum ada pasien dipanggil.");
         return;
     }
 
@@ -193,57 +273,29 @@ function ulangiTerakhir(){
     );
 }
 
-async function selesai(
-sapaan,
-nama,
-desa,
-klaster){
+async function selesai(sapaan,nama,desa,klaster){
 
-    if(
-        !confirm(
-            "Selesaikan pelayanan untuk "
-            + nama + " ?"
-        )
-    ){
+    if(!confirm("Selesaikan pelayanan untuk "+nama+" ?")){
         return;
     }
 
-    try{
+    await fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"selesai",
+            sapaan:sapaan,
+            nama:nama,
+            desa:desa,
+            klaster:klaster
+        })
+    });
 
-        await fetch(
-            API_URL,
-            {
-                method:"POST",
-                body:JSON.stringify({
-                    action:"selesai",
-                    sapaan:sapaan,
-                    nama:nama,
-                    desa:desa,
-                    klaster:klaster
-                })
-            }
-        );
-
-        tampilkanPasien();
-
-    }
-    catch(error){
-
-        alert(
-        "Gagal mengubah status."
-        );
-
-        console.log(error);
-
-    }
+    tampilkanPasien();
 }
 
 setInterval(function(){
 
-    const klaster=
-    document.getElementById(
-        "filterKlaster"
-    ).value;
+    const klaster=document.getElementById("filterKlaster").value;
 
     if(klaster!=""){
         tampilkanPasien();
@@ -252,3 +304,6 @@ setInterval(function(){
 },120000);
 
 </script>
+
+</body>
+</html>
