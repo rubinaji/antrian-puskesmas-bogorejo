@@ -1,78 +1,184 @@
 from pathlib import Path
-import shutil
 
-logo_src = Path('/mnt/data/ChatGPT Image Jun 25, 2026, 02_29_12 PM (1).png')
-logo_dst = Path('/mnt/data/logo-puskesmas-bogorejo.png')
-shutil.copy(logo_src, logo_dst)
-
-html = """<!DOCTYPE html>
+html = r'''<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Display Antrian Puskesmas Bogorejo</title>
+
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#0f766e;color:white;}
-.header{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:white;color:#0f766e;}
-.logo{display:flex;align-items:center;gap:20px;}
-.logo img{height:100px}
-.datetime{text-align:right;font-size:28px;font-weight:bold}
-.klaster{font-size:40px;text-align:center;padding:15px;background:#115e59;font-weight:bold}
-.main{padding:40px;text-align:center}
-.label{font-size:32px}
-.nama{font-size:72px;font-weight:bold;margin:20px 0}
-.desa{font-size:40px}
-.running{position:fixed;bottom:0;width:100%;background:#022c22;padding:15px 0;font-size:28px}
-marquee{font-weight:bold}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#0f766e;
+    color:white;
+    overflow:hidden;
+}
+.header{
+    background:white;
+    color:#0f766e;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 40px;
+}
+.logo-area{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+.logo-area img{
+    height:120px;
+}
+.logo-text h1{
+    margin:0;
+    font-size:50px;
+}
+.logo-text p{
+    margin:5px 0 0;
+    font-size:24px;
+}
+.datetime{
+    text-align:right;
+    font-size:30px;
+    font-weight:bold;
+}
+.klaster{
+    background:#115e59;
+    text-align:center;
+    font-size:48px;
+    font-weight:bold;
+    padding:20px;
+}
+.content{
+    text-align:center;
+    padding-top:50px;
+}
+.label{
+    font-size:40px;
+}
+.nama{
+    font-size:90px;
+    font-weight:bold;
+    margin:30px 0;
+}
+.desa{
+    font-size:50px;
+}
+.running{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#022c22;
+    padding:15px 0;
+    font-size:28px;
+    font-weight:bold;
+}
 </style>
 </head>
+
 <body>
+
 <div class="header">
-<div class="logo">
-<img src="logo-puskesmas-bogorejo.png">
-<div>
-<h1>PUSKESMAS BOGOREJO</h1>
-<div>Melayani Sepenuh Hati</div>
-</div>
-</div>
-<div class="datetime">
-<div id="tanggal"></div>
-<div id="jam"></div>
-</div>
+    <div class="logo-area">
+        <img src="https://rubinaji.github.io/antrian-puskesmas-bogorejo/Logo-Puskesmas.png">
+        <div class="logo-text">
+            <h1>PUSKESMAS BOGOREJO</h1>
+            <p>"Melayani Sepenuh Hati"</p>
+        </div>
+    </div>
+
+    <div class="datetime">
+        <div id="tanggal"></div>
+        <div id="jam"></div>
+    </div>
 </div>
 
-<div class="klaster" id="namaKlaster">DISPLAY RUANGAN</div>
+<div class="klaster" id="namaKlaster">
+MEMUAT RUANGAN...
+</div>
 
-<div class="main">
-<div class="label">SEDANG DIPANGGIL</div>
-<div class="nama" id="namaPasien">MENUNGGU...</div>
-<div class="desa" id="desaPasien">-</div>
+<div class="content">
+    <div class="label">SEDANG DIPANGGIL</div>
+
+    <div class="nama" id="namaPasien">
+        MENUNGGU...
+    </div>
+
+    <div class="desa" id="desaPasien">
+        Silakan menunggu panggilan
+    </div>
 </div>
 
 <div class="running">
-<marquee>Selamat datang di Puskesmas Bogorejo • Harap menyiapkan KTP/BPJS sebelum dipanggil • Jaga ketertiban dan kenyamanan ruang tunggu • Terima kasih atas kunjungan Anda</marquee>
+<marquee>
+Selamat datang di Puskesmas Bogorejo • Harap menyiapkan KTP atau BPJS sebelum dipanggil • Jaga ketertiban dan kebersihan ruang tunggu • Terima kasih atas kunjungan Anda • Puskesmas Bogorejo Melayani Sepenuh Hati
+</marquee>
 </div>
 
 <script>
-const params=new URLSearchParams(window.location.search);
-const klaster=params.get("klaster") || "SEMUA RUANGAN";
-document.getElementById("namaKlaster").innerText=klaster;
+
+const params = new URLSearchParams(window.location.search);
+const klaster = params.get("klaster") || "SEMUA RUANGAN";
+
+document.getElementById("namaKlaster").innerHTML = klaster;
 
 function updateJam(){
- const now=new Date();
- document.getElementById("tanggal").innerText=now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
- document.getElementById("jam").innerText=now.toLocaleTimeString('id-ID')+' WIB';
-}
-setInterval(updateJam,1000);updateJam();
 
-const data=JSON.parse(localStorage.getItem('sedangDipanggil')||'null');
-if(data){
- document.getElementById("namaPasien").innerText=(data.sapaan||'')+' '+(data.nama||'');
- document.getElementById("desaPasien").innerText='Desa : '+(data.desa||'-');
+    const now = new Date();
+
+    document.getElementById("tanggal").innerHTML =
+    now.toLocaleDateString(
+        "id-ID",
+        {
+            weekday:"long",
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
+
+    document.getElementById("jam").innerHTML =
+    now.toLocaleTimeString("id-ID")+" WIB";
 }
+
+setInterval(updateJam,1000);
+updateJam();
+
+function updatePasien(){
+
+    const data =
+    JSON.parse(
+        localStorage.getItem(
+            "sedangDipanggil"
+        )
+    );
+
+    if(data){
+
+        document.getElementById(
+            "namaPasien"
+        ).innerHTML =
+        data.sapaan+" "+data.nama;
+
+        document.getElementById(
+            "desaPasien"
+        ).innerHTML =
+        "Desa : "+data.desa;
+    }
+}
+
+setInterval(updatePasien,1000);
+updatePasien();
+
 </script>
+
 </body>
-</html>"""
-path='/mnt/data/display.html'
+</html>
+'''
+
+path='/mnt/data/display-lengkap.html'
 Path(path).write_text(html,encoding='utf-8')
+
 print(path)
