@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Display Antrian Puskesmas Bogorejo</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#0f766e,#115e59,#134e4a);
+    color:white;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.container{
+    width:90%;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:30px;
+}
+
+.status{
+    font-size:35px;
+    font-weight:bold;
+    color:#fde68a;
+}
+
+.sapaan{
+    margin-top:30px;
+    font-size:50px;
+}
+
+.nama{
+    font-size:90px;
+    font-weight:800;
+    margin-top:20px;
+}
+
+.desa{
+    margin-top:20px;
+    font-size:45px;
+}
+
+.ruangan{
+    margin-top:40px;
+    display:inline-block;
+    background:white;
+    color:#0f766e;
+    padding:25px 50px;
+    border-radius:25px;
+    font-size:45px;
+    font-weight:bold;
+}
+
+.jam{
+    margin-top:50px;
+    font-size:30px;
+}
+
+.footer{
+    margin-top:40px;
+    font-size:22px;
+    color:#d1fae5;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">
+        SISTEM PANGGILAN PASIEN<br>
+        PUSKESMAS BOGOREJO
+    </div>
+
+    <div class="status">
+        SEDANG DIPANGGIL
+    </div>
+
+    <div class="sapaan" id="sapaan">
+        -
+    </div>
+
+    <div class="nama" id="nama">
+        MENUNGGU
+    </div>
+
+    <div class="desa" id="desa">
+        -
+    </div>
+
+    <div class="ruangan" id="klaster">
+        SILAKAN MENUNGGU
+    </div>
+
+    <div class="jam" id="jam"></div>
+
+    <div class="footer">
+        Terima kasih telah menggunakan layanan Puskesmas Bogorejo
+    </div>
+
+</div>
+
+<script>
+
+function updateDisplay(){
+
+    const data =
+        JSON.parse(
+            localStorage.getItem("sedangDipanggil")
+        );
+
+    if(data){
+
+        document.getElementById("sapaan").innerHTML =
+            data.sapaan;
+
+        document.getElementById("nama").innerHTML =
+            data.nama.toUpperCase();
+
+        document.getElementById("desa").innerHTML =
+            "Desa " + data.desa;
+
+        document.getElementById("klaster").innerHTML =
+            data.klaster;
+
+    }
+}
+
+function updateJam(){
+
+    const sekarang = new Date();
+
+    const jam =
+        sekarang.toLocaleTimeString(
+            "id-ID"
+        );
+
+    const tanggal =
+        sekarang.toLocaleDateString(
+            "id-ID",
+            {
+                weekday:'long',
+                year:'numeric',
+                month:'long',
+                day:'numeric'
+            }
+        );
+
+    document.getElementById("jam").innerHTML =
+        tanggal + "<br>" + jam;
+}
+
+updateDisplay();
+updateJam();
+
+setInterval(updateDisplay,1000);
+setInterval(updateJam,1000);
+
+</script>
+
+</body>
+</html>

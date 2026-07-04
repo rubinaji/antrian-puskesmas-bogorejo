@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Operator Panggilan Pasien</title>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#0f766e;
+    color:white;
+    padding:30px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    color:#0f766e;
+    padding:30px;
+    border-radius:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+select{
+    width:100%;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin-bottom:20px;
+    font-size:16px;
+}
+
+.card{
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.card h2{
+    margin-bottom:10px;
+}
+
+.status{
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.menunggu{
+    background:#fde68a;
+}
+
+.dipanggil{
+    background:#86efac;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:10px;
+    color:white;
+    cursor:pointer;
+    margin-top:10px;
+    margin-right:10px;
+}
+
+.panggil{
+    background:#16a34a;
+}
+
+.ulangi{
+    background:#2563eb;
+}
+
+.selesai{
+    background:#dc2626;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.kosong{
+    text-align:center;
+    padding:40px;
+    font-size:22px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OPERATOR PANGGILAN PASIEN</h1>
+
+<select id="filterKlaster" onchange="tampilkanPasien()">
+
+<option value="">Pilih Klaster</option>
+
+<option>Klaster 3 Dewasa dan Lansia</option>
+<option>Klaster II Ibu dan Anak (KIA)</option>
+<option>Klaster II Anak dan Remaja (MTBS)</option>
+<option>Klaster IV (Penyakit Menular)</option>
+<option>Laboratorium</option>
+<option>Apotek</option>
+<option>Gizi</option>
+<option>Imunisasi</option>
+<option>PONED</option>
+<option>Konseling</option>
+<option>Lintas Klaster (Gawat Darurat)</option>
+<option>Lintas Klaster (Gigi dan Mulut)</option>
+
+</select>
+
+<div id="daftarPasien"></div>
+
+</div>
+
+<script>
+
+function tampilkanPasien(){
+
+    const pasien = JSON.parse(localStorage.getItem("pasien")) || [];
+    const klaster = document.getElementById("filterKlaster").value;
+    const daftar = document.getElementById("daftarPasien");
+
+    daftar.innerHTML = "";
+
+    if(klaster==""){
+        daftar.innerHTML =
+        "<div class='kosong'>Silakan pilih klaster terlebih dahulu</div>";
+        return;
+    }
+
+    const hasil = pasien.filter(
+        p => p.klaster === klaster &&
+        p.status !== "selesai"
+    );
+
+    if(hasil.length===0){
+        daftar.innerHTML =
+        "<div class='kosong'>Tidak ada pasien menunggu</div>";
+        return;
+    }
+
+    hasil.forEach((p,index)=>{
+
+        daftar.innerHTML += `
+        <div class="card">
+
+            <h2>${p.sapaan} ${p.nama}</h2>
+
+            <p><b>Desa :</b> ${p.desa}</p>
+
+            <p><b>Klaster :</b> ${p.klaster}</p>
+
+            <p>
+                <span class="status ${p.status}">
+                    ${p.status.toUpperCase()}
+                </span>
+            </p>
+
+            ${
+                p.status=="menunggu"
+                ?
+                `<button class="panggil"
+                onclick="panggil(${index})">
+                🔊 Panggil
+                </button>`
+                :
+                `<button class="ulangi"
+                onclick="ulangi(${index})">
+                🔁 Ulangi
+                </button>`
+            }
+
+            <button class="selesai"
+            onclick="selesai(${index})">
+            ✅ Selesai
+            </button>
+
+        </div>
+        `;
+    });
+}
+
+function panggil(index){
+
+    let pasien = JSON.parse(localStorage.getItem("pasien")) || [];
+
+    const klaster =
+    document.getElementById("filterKlaster").value;
+
+    const daftarKlaster = pasien.filter(
+        p => p.klaster === klaster &&
+        p.status !== "selesai"
+    );
+
+    const data = daftarKlaster[index];
+
+    data.status = "dipanggil";
+
+    pasien.forEach(p=>{
+        if(
+            p.nama===data.nama &&
+            p.desa===data.desa &&
+            p.klaster===data.klaster
+        ){
+            p.status="dipanggil";
+        }
+    });
+
+    localStorage.setItem(
+        "pasien",
+        JSON.stringify(pasien)
+    );
+
+    localStorage.setItem(
+        "sedangDipanggil",
+        JSON.stringify(data)
+    );
+
+    const suara = new SpeechSynthesisUtterance(
+        data.sapaan+" "+
+        data.nama+
+        " dari desa "+
+        data.desa+
+        ", dipersilakan menuju "+
+        data.klaster+
+        ". Terima kasih."
+    );
+
+    suara.lang="id-ID";
+    suara.rate=0.9;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(suara);
+
+    tampilkanPasien();
+}
+
+function ulangi(index){
+
+    const pasien = JSON.parse(localStorage.getItem("pasien")) || [];
+
+    const klaster =
+    document.getElementById("filterKlaster").value;
+
+    const daftarKlaster = pasien.filter(
+        p => p.klaster === klaster &&
+        p.status === "dipanggil"
+    );
+
+    const data = daftarKlaster[index];
+
+    localStorage.setItem(
+        "sedangDipanggil",
+        JSON.stringify(data)
+    );
+
+    const suara = new SpeechSynthesisUtterance(
+        data.sapaan+" "+
+        data.nama+
+        " dari desa "+
+        data.desa+
+        ", dipersilakan menuju "+
+        data.klaster+
+        ". Terima kasih."
+    );
+
+    suara.lang="id-ID";
+    suara.rate=0.9;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(suara);
+}
+
+function selesai(index){
+
+    let pasien = JSON.parse(localStorage.getItem("pasien")) || [];
+
+    const klaster =
+    document.getElementById("filterKlaster").value;
+
+    const daftarKlaster = pasien.filter(
+        p => p.klaster === klaster &&
+        p.status !== "selesai"
+    );
+
+    const data = daftarKlaster[index];
+
+    pasien.forEach(p=>{
+        if(
+            p.nama===data.nama &&
+            p.desa===data.desa &&
+            p.klaster===data.klaster
+        ){
+            p.status="selesai";
+        }
+    });
+
+    localStorage.setItem(
+        "pasien",
+        JSON.stringify(pasien)
+    );
+
+    tampilkanPasien();
+}
+
+</script>
+
+</body>
+</html>

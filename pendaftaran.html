@@ -1,0 +1,44 @@
+async function daftarPasien(){
+
+    const sapaan = document.getElementById("sapaan").value;
+    const nama = document.getElementById("nama").value;
+    const desa = document.getElementById("desa").value;
+    const klaster = document.getElementById("klaster").value;
+
+    if(nama==""){
+        alert("Nama pasien belum diisi");
+        return;
+    }
+
+    const data = {
+        sapaan:sapaan,
+        nama:nama,
+        desa:desa,
+        klaster:klaster
+    };
+
+    try{
+
+        const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec",
+        {
+            method:"POST",
+            body:JSON.stringify(data)
+        });
+
+        const hasil = await response.json();
+
+        if(hasil.status==="success"){
+            alert("Pasien berhasil didaftarkan");
+
+            document.getElementById("nama").value="";
+        }
+
+    }catch(error){
+
+        alert("Gagal mengirim data");
+        console.log(error);
+
+    }
+
+}
