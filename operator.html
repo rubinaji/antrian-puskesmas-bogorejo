@@ -1,170 +1,6 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Operator Panggilan - Puskesmas Bogorejo</title>
-
-<style>
-
-body{
-    font-family:Arial,sans-serif;
-    background:#0f766e;
-    color:white;
-    padding:20px;
-}
-
-.container{
-    max-width:1200px;
-    margin:auto;
-    background:white;
-    color:#0f766e;
-    padding:25px;
-    border-radius:20px;
-}
-
-h1{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-select{
-    width:100%;
-    padding:15px;
-    border-radius:10px;
-    border:1px solid #ccc;
-    margin-bottom:20px;
-    font-size:16px;
-}
-
-.toolbar{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:20px;
-}
-
-button{
-    border:none;
-    padding:12px 20px;
-    border-radius:10px;
-    color:white;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.refresh{
-    background:#f59e0b;
-}
-
-.ulangi{
-    background:#2563eb;
-}
-
-.panggil{
-    background:#16a34a;
-}
-
-.selesai{
-    background:#dc2626;
-}
-
-.counter{
-    background:#0f766e;
-    color:white;
-    padding:12px 20px;
-    border-radius:10px;
-    font-weight:bold;
-}
-
-.sedang{
-    background:#ecfdf5;
-    padding:20px;
-    border-radius:15px;
-    margin-bottom:20px;
-}
-
-.card{
-    border:1px solid #ddd;
-    border-radius:15px;
-    padding:20px;
-    margin-bottom:15px;
-}
-
-.card h2{
-    margin-bottom:10px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>OPERATOR PANGGILAN PASIEN</h1>
-
-<select id="filterKlaster" onchange="tampilkanPasien()">
-
-<option value="">Pilih Klaster</option>
-
-<option>Klaster 3 Dewasa dan Lansia</option>
-<option>Klaster II Ibu dan Anak (KIA)</option>
-<option>Klaster II Anak dan Remaja (MTBS)</option>
-<option>Klaster IV (Penyakit Menular)</option>
-<option>Laboratorium</option>
-<option>Apotek</option>
-<option>Gizi</option>
-<option>Imunisasi</option>
-<option>PONED</option>
-<option>Konseling</option>
-<option>Lintas Klaster (Gawat Darurat)</option>
-<option>Lintas Klaster (Gigi dan Mulut)</option>
-
-</select>
-
-<div class="toolbar">
-
-<button class="refresh"
-onclick="tampilkanPasien()">
-🔄 Refresh
-</button>
-
-<button class="ulangi"
-onclick="ulangiTerakhir()">
-🔁 Ulangi Terakhir
-</button>
-
-<div class="counter">
-Menunggu :
-<span id="jumlahPasien">0</span>
-</div>
-
-</div>
-
-<div class="sedang">
-
-<h3>SEDANG DIPANGGIL</h3>
-
-<div id="sedangDipanggil">
-Belum ada pasien dipanggil
-</div>
-
-</div>
-
-<div id="daftarPasien">
-Silakan pilih klaster.
-</div>
-
-</div>
-
 <script>
 
 const API_URL="https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec";
-
-let selesaiList=[];
 
 async function tampilkanPasien(){
 
@@ -176,8 +12,6 @@ async function tampilkanPasien(){
 
     const daftar=document.getElementById("daftarPasien");
 
-    daftar.innerHTML="Memuat data...";
-
     try{
 
         const response=await fetch(API_URL);
@@ -186,10 +20,7 @@ async function tampilkanPasien(){
         const hasil=pasien.filter(
             p =>
             p.Klaster===klaster &&
-            p.Status==="menunggu" &&
-            !selesaiList.includes(
-                p.Nama+p.Desa+p.Klaster
-            )
+            p.Status!=="selesai"
         );
 
         document.getElementById(
@@ -215,6 +46,8 @@ async function tampilkanPasien(){
 
                 <p><b>Desa :</b> ${p.Desa}</p>
 
+                <p><b>Status :</b> ${p.Status}</p>
+
                 <button class="panggil"
                 onclick='panggil(
                 "${p.Sapaan}",
@@ -237,6 +70,7 @@ async function tampilkanPasien(){
 
                 <button class="selesai"
                 onclick='selesai(
+                "${p.Sapaan}",
                 "${p.Nama}",
                 "${p.Desa}",
                 "${p.Klaster}"
@@ -287,17 +121,33 @@ klaster){
     <p>${klaster}</p>
     `;
 
-    const suara=
-    new SpeechSynthesisUtterance(
-        sapaan+" "+nama+
-        " dari desa "+desa+
-        ", dipersilakan menuju "+
-        klaster+
+    const suara = new SpeechSynthesisUtterance(
+        sapaan + " " +
+        nama +
+        ", dari desa " +
+        desa +
+        ", dipersilakan menuju " +
+        klaster +
         ". Terima kasih."
     );
 
     suara.lang="id-ID";
-    suara.rate=1;
+    suara.rate=0.85;
+    suara.pitch=1;
+    suara.volume=1;
+
+    const voices =
+    speechSynthesis.getVoices();
+
+    const voiceIndonesia =
+    voices.find(
+        v=>v.lang.includes("id")
+    );
+
+    if(voiceIndonesia){
+        suara.voice=
+        voiceIndonesia;
+    }
 
     speechSynthesis.cancel();
     speechSynthesis.speak(suara);
@@ -327,9 +177,11 @@ function ulangiTerakhir(){
     );
 
     if(!data){
+
         alert(
         "Belum ada pasien dipanggil."
         );
+
         return;
     }
 
@@ -341,16 +193,49 @@ function ulangiTerakhir(){
     );
 }
 
-function selesai(
+async function selesai(
+sapaan,
 nama,
 desa,
 klaster){
 
-    selesaiList.push(
-        nama+desa+klaster
-    );
+    if(
+        !confirm(
+            "Selesaikan pelayanan untuk "
+            + nama + " ?"
+        )
+    ){
+        return;
+    }
 
-    tampilkanPasien();
+    try{
+
+        await fetch(
+            API_URL,
+            {
+                method:"POST",
+                body:JSON.stringify({
+                    action:"selesai",
+                    sapaan:sapaan,
+                    nama:nama,
+                    desa:desa,
+                    klaster:klaster
+                })
+            }
+        );
+
+        tampilkanPasien();
+
+    }
+    catch(error){
+
+        alert(
+        "Gagal mengubah status."
+        );
+
+        console.log(error);
+
+    }
 }
 
 setInterval(function(){
@@ -367,6 +252,3 @@ setInterval(function(){
 },120000);
 
 </script>
-
-</body>
-</html>
