@@ -42,6 +42,7 @@ select{
     gap:10px;
     flex-wrap:wrap;
     margin-bottom:20px;
+    align-items:center;
 }
 
 button{
@@ -79,6 +80,7 @@ button{
 
 .sedang{
     background:#ecfdf5;
+    color:#0f766e;
     padding:20px;
     border-radius:15px;
     margin-bottom:20px;
@@ -105,7 +107,9 @@ button{
 <h1>OPERATOR PANGGILAN PASIEN</h1>
 
 <select id="filterKlaster" onchange="tampilkanPasien()">
+
 <option value="">Pilih Klaster</option>
+
 <option>Klaster 3 Dewasa dan Lansia</option>
 <option>Klaster II Ibu dan Anak (KIA)</option>
 <option>Klaster II Anak dan Remaja (MTBS)</option>
@@ -118,6 +122,7 @@ button{
 <option>Konseling</option>
 <option>Lintas Klaster (Gawat Darurat)</option>
 <option>Lintas Klaster (Gigi dan Mulut)</option>
+
 </select>
 
 <div class="toolbar">
@@ -138,10 +143,13 @@ Menunggu :
 </div>
 
 <div class="sedang">
+
 <h3>SEDANG DIPANGGIL</h3>
+
 <div id="sedangDipanggil">
 Belum ada pasien dipanggil
 </div>
+
 </div>
 
 <div id="daftarPasien">
@@ -154,6 +162,8 @@ Silakan pilih klaster.
 
 const API_URL="https://script.google.com/macros/s/AKfycbxLl2vDi0k4HJzaDCJXzTl0NynMjcVWvgVuz0G1a9tchMueFwgzdB4zncmKeTLX9iIn9w/exec";
 
+let selesaiList=[];
+
 async function tampilkanPasien(){
 
     const klaster=document.getElementById("filterKlaster").value;
@@ -164,6 +174,8 @@ async function tampilkanPasien(){
 
     const daftar=document.getElementById("daftarPasien");
 
+    daftar.innerHTML="Memuat data...";
+
     try{
 
         const response=await fetch(API_URL);
@@ -172,15 +184,22 @@ async function tampilkanPasien(){
         const hasil=pasien.filter(
             p =>
             p.Klaster===klaster &&
-            p.Status!=="selesai"
+            !selesaiList.includes(
+                p.Sapaan+p.Nama+p.Desa+p.Klaster
+            )
         );
 
-        document.getElementById("jumlahPasien").innerHTML=hasil.length;
+        document.getElementById(
+            "jumlahPasien"
+        ).innerHTML=hasil.length;
 
         daftar.innerHTML="";
 
         if(hasil.length===0){
-            daftar.innerHTML="<h2>Tidak ada pasien menunggu</h2>";
+
+            daftar.innerHTML=
+            "<h2>Tidak ada pasien menunggu</h2>";
+
             return;
         }
 
@@ -192,20 +211,36 @@ async function tampilkanPasien(){
                 <h2>${p.Sapaan} ${p.Nama}</h2>
 
                 <p><b>Desa :</b> ${p.Desa}</p>
+
                 <p><b>Status :</b> ${p.Status}</p>
 
                 <button class="panggil"
-                onclick='panggil("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
+                onclick='panggil(
+                "${p.Sapaan}",
+                "${p.Nama}",
+                "${p.Desa}",
+                "${p.Klaster}"
+                )'>
                 🔊 Panggil
                 </button>
 
                 <button class="ulangi"
-                onclick='ulangi("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
+                onclick='ulangi(
+                "${p.Sapaan}",
+                "${p.Nama}",
+                "${p.Desa}",
+                "${p.Klaster}"
+                )'>
                 🔁 Ulangi
                 </button>
 
                 <button class="selesai"
-                onclick='selesai("${p.Sapaan}","${p.Nama}","${p.Desa}","${p.Klaster}")'>
+                onclick='selesai(
+                "${p.Sapaan}",
+                "${p.Nama}",
+                "${p.Desa}",
+                "${p.Klaster}"
+                )'>
                 ✅ Selesai
                 </button>
 
@@ -213,32 +248,52 @@ async function tampilkanPasien(){
             `;
         });
 
-    }catch(error){
+    }
+    catch(error){
 
-        daftar.innerHTML="<h2>Gagal mengambil data</h2>";
+        daftar.innerHTML=
+        "<h2>Gagal mengambil data</h2>";
+
         console.log(error);
 
     }
 
 }
 
-function panggil(sapaan,nama,desa,klaster){
+function panggil(
+sapaan,
+nama,
+desa,
+klaster){
 
-    const data={sapaan,nama,desa,klaster};
+    const data={
+        sapaan:sapaan,
+        nama:nama,
+        desa:desa,
+        klaster:klaster
+    };
 
     localStorage.setItem(
         "sedangDipanggil",
         JSON.stringify(data)
     );
 
-    document.getElementById("sedangDipanggil").innerHTML=`
-        <h2>${sapaan} ${nama}</h2>
-        <p>${desa}</p>
-        <p>${klaster}</p>
+    document.getElementById(
+        "sedangDipanggil"
+    ).innerHTML=
+    `
+    <h2>${sapaan} ${nama}</h2>
+    <p>${desa}</p>
+    <p>${klaster}</p>
     `;
 
-    const suara=new SpeechSynthesisUtterance(
-        `${sapaan} ${nama}, dari desa ${desa}, dipersilakan menuju ${klaster}. Terima kasih.`
+    const suara =
+    new SpeechSynthesisUtterance(
+        sapaan+" "+nama+
+        ", dari desa "+desa+
+        ", dipersilakan menuju "+
+        klaster+
+        ". Terima kasih."
     );
 
     suara.lang="id-ID";
@@ -250,18 +305,35 @@ function panggil(sapaan,nama,desa,klaster){
     speechSynthesis.speak(suara);
 }
 
-function ulangi(sapaan,nama,desa,klaster){
-    panggil(sapaan,nama,desa,klaster);
+function ulangi(
+sapaan,
+nama,
+desa,
+klaster){
+
+    panggil(
+        sapaan,
+        nama,
+        desa,
+        klaster
+    );
 }
 
 function ulangiTerakhir(){
 
-    const data=JSON.parse(
-        localStorage.getItem("sedangDipanggil")
+    const data=
+    JSON.parse(
+        localStorage.getItem(
+            "sedangDipanggil"
+        )
     );
 
     if(!data){
-        alert("Belum ada pasien dipanggil.");
+
+        alert(
+        "Belum ada pasien dipanggil."
+        );
+
         return;
     }
 
@@ -273,41 +345,25 @@ function ulangiTerakhir(){
     );
 }
 
-async function selesai(sapaan,nama,desa,klaster){
+function selesai(
+sapaan,
+nama,
+desa,
+klaster){
 
-    if(!confirm("Selesaikan pelayanan untuk "+nama+" ?")){
-        return;
-    }
+    selesaiList.push(
+        sapaan+nama+desa+klaster
+    );
 
-    try{
-
-        await fetch(API_URL,{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                action:"selesai",
-                sapaan:sapaan,
-                nama:nama,
-                desa:desa,
-                klaster:klaster
-            })
-        });
-
-        tampilkanPasien();
-
-    }catch(error){
-
-        alert("Gagal mengubah status pasien");
-        console.log(error);
-
-    }
+    tampilkanPasien();
 }
 
 setInterval(function(){
 
-    const klaster=document.getElementById("filterKlaster").value;
+    const klaster=
+    document.getElementById(
+        "filterKlaster"
+    ).value;
 
     if(klaster!=""){
         tampilkanPasien();
