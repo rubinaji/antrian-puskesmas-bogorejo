@@ -279,18 +279,30 @@ async function selesai(sapaan,nama,desa,klaster){
         return;
     }
 
-    await fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({
-            action:"selesai",
-            sapaan:sapaan,
-            nama:nama,
-            desa:desa,
-            klaster:klaster
-        })
-    });
+    try{
 
-    tampilkanPasien();
+        await fetch(API_URL,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                action:"selesai",
+                sapaan:sapaan,
+                nama:nama,
+                desa:desa,
+                klaster:klaster
+            })
+        });
+
+        tampilkanPasien();
+
+    }catch(error){
+
+        alert("Gagal mengubah status pasien");
+        console.log(error);
+
+    }
 }
 
 setInterval(function(){
