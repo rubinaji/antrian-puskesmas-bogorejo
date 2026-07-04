@@ -1,3 +1,5 @@
+<script>
+
 async function daftarPasien(){
 
     const sapaan = document.getElementById("sapaan").value;
@@ -30,15 +32,13 @@ async function daftarPasien(){
 
         if(hasil.status==="success"){
             alert("Pasien berhasil didaftarkan");
-
             document.getElementById("nama").value="";
         }
 
     }catch(error){
-
         alert("Gagal mengirim data");
         console.log(error);
-
     }
-
 }
+
+</script>
